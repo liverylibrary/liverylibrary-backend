@@ -15,8 +15,8 @@ const app = express();
 const allowedOrigins = [
   "https://liverylibrary.xyz",
   "https://www.liverylibrary.xyz",
-  "https://liverylibrary-frontend.onrender.com", // your Render frontend
-  "http://localhost:3000", // local dev
+  "https://liverylibrary-backend-z2co.onrender.com",
+  "http://localhost:3000",
 ];
 
 app.use(
