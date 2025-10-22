@@ -76,7 +76,7 @@ router.get("/", async (req, res) => {
 router.post("/", verifyToken, upload.array("images", 5), async (req, res) => {
   try {
     const { name, aircraft, description, tags, decalIds } = req.body;
-    const imagePaths = req.files.map((file) => `/uploads/${file.filename}`);
+    const imagePaths = req.files.map(file => file.path);
 
     const livery = new Livery({
       name,

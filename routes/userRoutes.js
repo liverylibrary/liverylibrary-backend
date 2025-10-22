@@ -11,7 +11,7 @@ router.post("/profile/avatar", verifyToken, upload.single("avatar"), async (req,
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    user.avatarUrl = `/uploads/${req.file.filename}`;
+    user.avatarUrl = req.file.path;
     await user.save();
 
     res.json({ message: "Avatar updated successfully", avatarUrl: user.avatarUrl });
@@ -26,7 +26,7 @@ router.post("/profile/banner", verifyToken, upload.single("banner"), async (req,
     const user = await User.findById(req.user.id);
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    user.bannerUrl = `/uploads/${req.file.filename}`;
+    user.bannerUrl = req.file.path;
     await user.save();
 
     res.json({ message: "Banner updated successfully", bannerUrl: user.bannerUrl });
