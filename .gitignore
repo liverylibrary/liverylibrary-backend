@@ -1,4 +1,4 @@
 node_modules
-uploads
+.next
 .env
 .DS_Store

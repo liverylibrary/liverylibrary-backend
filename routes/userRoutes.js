@@ -6,7 +6,6 @@ import Livery from "../models/Livery.js";
 
 const router = express.Router();
 
-// Upload avatar
 router.post("/profile/avatar", verifyToken, upload.single("avatar"), async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
@@ -22,7 +21,6 @@ router.post("/profile/avatar", verifyToken, upload.single("avatar"), async (req,
   }
 });
 
-// Upload banner
 router.post("/profile/banner", verifyToken, upload.single("banner"), async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
@@ -39,15 +37,13 @@ router.post("/profile/banner", verifyToken, upload.single("banner"), async (req,
 });
 
 
-// 🆕 Public profile route
 router.get("/:username", async (req, res) => {
   try {
     const user = await User.findOne({ username: req.params.username })
-      .select("-passwordHash -email"); // don’t leak sensitive info
+      .select("-passwordHash -email");
 
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Get their liveries
     const liveries = await Livery.find({ author: user._id })
       .sort({ createdAt: -1 })
       .select("name images aircraft createdAt");
