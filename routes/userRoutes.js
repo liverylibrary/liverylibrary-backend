@@ -55,6 +55,60 @@ router.get("/:username", async (req, res) => {
   }
 });
 
+// --- Admin/moderator profile management ---
+
+// Delete avatar
+router.post("/:username/delete-avatar", verifyToken, async (req, res) => {
+  const actingUser = req.user;
+  if (!["admin", "moderator", "owner"].includes(actingUser.role))
+    return res.status(403).json({ message: "Not authorized" });
+
+  const user = await User.findOne({ username: req.params.username });
+  if (!user) return res.status(404).json({ message: "User not found" });
+
+  user.avatarUrl = "";
+  await user.save();
+
+  res.json({ message: "Avatar deleted successfully" });
+});
+
+// Delete banner
+router.post("/:username/delete-banner", verifyToken, async (req, res) => {
+  const actingUser = req.user;
+  if (!["admin", "moderator", "owner"].includes(actingUser.role))
+    return res.status(403).json({ message: "Not authorized" });
+
+  const user = await User.findOne({ username: req.params.username });
+  if (!user) return res.status(404).json({ message: "User not found" });
+
+  user.bannerUrl = "";
+  await user.save();
+
+  res.json({ message: "Banner deleted successfully" });
+});
+
+// Change username
+router.post("/:username/change-username", verifyToken, async (req, res) => {
+  const actingUser = req.user;
+  const { newUsername } = req.body;
+  if (!["admin", "moderator", "owner"].includes(actingUser.role))
+    return res.status(403).json({ message: "Not authorized" });
+
+  if (!newUsername || newUsername.trim().length < 3)
+    return res.status(400).json({ message: "Invalid username" });
+
+  const user = await User.findOne({ username: req.params.username });
+  if (!user) return res.status(404).json({ message: "User not found" });
+
+  const existing = await User.findOne({ username: newUsername });
+  if (existing)
+    return res.status(400).json({ message: "Username already taken" });
+
+  user.username = newUsername.trim();
+  await user.save();
+
+  res.json({ message: "Username changed successfully" });
+});
 
 
 
