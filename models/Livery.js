@@ -20,4 +20,4 @@ const liverySchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now },
 });
 
-export default mongoose.model("Livery", liverySchema); // ✅ correct ES module export
+export default mongoose.model("Livery", liverySchema);

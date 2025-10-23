@@ -6,11 +6,6 @@ import User from "../models/User.js";
 
 const router = express.Router();
 
-//
-// ─── 1. PUBLIC ROUTES ──────────────────────────────────────────────
-//
-
-// Get the 6 most recent liveries
 router.get("/recent", async (req, res) => {
   try {
     const liveries = await Livery.find({})
@@ -25,7 +20,6 @@ router.get("/recent", async (req, res) => {
   }
 });
 
-// Get other liveries by the same author (excluding current)
 router.get("/author/:authorId/:excludeId", async (req, res) => {
   try {
     const { authorId, excludeId } = req.params;
@@ -45,7 +39,6 @@ router.get("/author/:authorId/:excludeId", async (req, res) => {
   }
 });
 
-// Get all liveries (with optional filters)
 router.get("/", async (req, res) => {
   try {
     const { aircraft, tag, search } = req.query;
@@ -54,7 +47,7 @@ router.get("/", async (req, res) => {
     if (aircraft) query.aircraft = aircraft;
     if (tag) query.tags = { $in: [tag] };
     if (search)
-      query.name = { $regex: search, $options: "i" }; // case-insensitive
+      query.name = { $regex: search, $options: "i" }; 
 
     const liveries = await Livery.find(query)
       .populate("author", "username")
@@ -68,11 +61,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-//
-// ─── 2. AUTHENTICATED USER ROUTES ──────────────────────────────────
-//
 
-// Upload a new livery
 router.post("/", verifyToken, upload.array("images", 5), async (req, res) => {
   try {
     const { name, aircraft, description, tags, decalIds } = req.body;
@@ -96,7 +85,6 @@ router.post("/", verifyToken, upload.array("images", 5), async (req, res) => {
   }
 });
 
-// Get all liveries uploaded by the current user
 router.get("/my", verifyToken, async (req, res) => {
   try {
     const liveries = await Livery.find({ author: req.user.id })
@@ -110,7 +98,6 @@ router.get("/my", verifyToken, async (req, res) => {
   }
 });
 
-// Like or unlike a livery
 router.post("/:id/like", verifyToken, async (req, res) => {
   try {
     const livery = await Livery.findById(req.params.id);
@@ -122,9 +109,9 @@ router.post("/:id/like", verifyToken, async (req, res) => {
     const index = livery.likes.indexOf(userId);
 
     if (index > -1) {
-      livery.likes.splice(index, 1); // Unlike
+      livery.likes.splice(index, 1); 
     } else {
-      livery.likes.push(userId); // Like
+      livery.likes.push(userId); 
     }
 
     await livery.save();
@@ -135,7 +122,6 @@ router.post("/:id/like", verifyToken, async (req, res) => {
   }
 });
 
-// Add comment to a livery
 router.post("/:id/comments", verifyToken, async (req, res) => {
   try {
     const { text } = req.body;
@@ -162,7 +148,6 @@ router.post("/:id/comments", verifyToken, async (req, res) => {
   }
 });
 
-// Delete a livery by ID (owned by user)
 router.delete("/:id", verifyToken, async (req, res) => {
   try {
     const livery = await Livery.findById(req.params.id);
@@ -179,11 +164,6 @@ router.delete("/:id", verifyToken, async (req, res) => {
   }
 });
 
-//
-// ─── 3. DYNAMIC ROUTE (MUST COME LAST) ─────────────────────────────
-//
-
-// Get single livery by ID
 router.get("/:id", async (req, res) => {
   try {
     const livery = await Livery.findById(req.params.id)

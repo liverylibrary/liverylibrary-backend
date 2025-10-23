@@ -5,16 +5,13 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-// --- CLOUDINARY CONFIGURATION ---
 cloudinary.config({
   cloudinary_url: process.env.CLOUDINARY_URL,
 });
 
-// --- CLOUDINARY STORAGE ENGINE ---
 const storage = new CloudinaryStorage({
   cloudinary,
   params: async (req, file) => {
-    // Optional: separate folders by route context
     const folder = req.baseUrl.includes("liveries")
       ? "liverylibrary/liveries"
       : "liverylibrary/users";
@@ -28,5 +25,4 @@ const storage = new CloudinaryStorage({
   },
 });
 
-// --- EXPORT MULTER WRAPPER ---
 export const upload = multer({ storage });

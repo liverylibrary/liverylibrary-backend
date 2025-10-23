@@ -55,9 +55,7 @@ router.get("/:username", async (req, res) => {
   }
 });
 
-// --- Admin/moderator profile management ---
 
-// Delete avatar
 router.post("/:username/delete-avatar", verifyToken, async (req, res) => {
   const actingUser = req.user;
   if (!["admin", "moderator", "owner"].includes(actingUser.role))
@@ -72,7 +70,6 @@ router.post("/:username/delete-avatar", verifyToken, async (req, res) => {
   res.json({ message: "Avatar deleted successfully" });
 });
 
-// Delete banner
 router.post("/:username/delete-banner", verifyToken, async (req, res) => {
   const actingUser = req.user;
   if (!["admin", "moderator", "owner"].includes(actingUser.role))
@@ -87,7 +84,6 @@ router.post("/:username/delete-banner", verifyToken, async (req, res) => {
   res.json({ message: "Banner deleted successfully" });
 });
 
-// Change username
 router.post("/:username/change-username", verifyToken, async (req, res) => {
   const actingUser = req.user;
   const { newUsername } = req.body;
