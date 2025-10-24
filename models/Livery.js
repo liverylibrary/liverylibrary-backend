@@ -17,6 +17,7 @@ const liverySchema = new mongoose.Schema({
       date: { type: Date, default: Date.now },
     },
   ],
+  exclusive: { type: Boolean, default: false }, 
   createdAt: { type: Date, default: Date.now },
 });
 

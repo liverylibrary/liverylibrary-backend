@@ -39,27 +39,30 @@ router.get("/author/:authorId/:excludeId", async (req, res) => {
   }
 });
 
-router.get("/", async (req, res) => {
+router.post("/", verifyToken, upload.array("images", 5), async (req, res) => {
   try {
-    const { aircraft, tag, search } = req.query;
-    const query = {};
+    const { name, aircraft, description, tags, decalIds, exclusive } = req.body;
+    const imagePaths = req.files.map((file) => file.path);
 
-    if (aircraft) query.aircraft = aircraft;
-    if (tag) query.tags = { $in: [tag] };
-    if (search)
-      query.name = { $regex: search, $options: "i" }; 
+    const livery = new Livery({
+      name,
+      aircraft,
+      description,
+      exclusive: exclusive === "true",
+      tags: JSON.parse(tags || "[]"),
+      decalIds: JSON.parse(decalIds || "[]"),
+      images: imagePaths,
+      author: req.user.id,
+    });
 
-    const liveries = await Livery.find(query)
-      .populate("author", "username")
-      .sort({ createdAt: -1 })
-      .limit(50);
-
-    res.json(liveries);
+    await livery.save();
+    res.status(201).json({ message: "Livery uploaded successfully", livery });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Failed to fetch liveries" });
+    res.status(500).json({ message: "Server error during upload" });
   }
 });
+
 
 
 router.get("/", async (req, res) => {
