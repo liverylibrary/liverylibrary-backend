@@ -62,26 +62,39 @@ router.get("/", async (req, res) => {
 });
 
 
-router.post("/", verifyToken, upload.array("images", 5), async (req, res) => {
+router.get("/", async (req, res) => {
   try {
-    const { name, aircraft, description, tags, decalIds } = req.body;
-    const imagePaths = req.files.map(file => file.path);
+    const { aircraft, tag, search, page = 1, limit = 9 } = req.query;
+    const query = {};
 
-    const livery = new Livery({
-      name,
-      aircraft,
-      description,
-      tags: JSON.parse(tags || "[]"),
-      decalIds: JSON.parse(decalIds || "[]"),
-      images: imagePaths,
-      author: req.user.id,
+    if (aircraft) query.aircraft = aircraft;
+    if (tag) query.tags = { $in: [tag] };
+    if (search) query.name = { $regex: search, $options: "i" };
+
+    const limitNum = Math.min(parseInt(limit) || 9, 50);
+    const total = await Livery.countDocuments(query);
+    const totalPages = Math.ceil(total / limitNum);
+
+    const currentPage = Math.min(
+      Math.max(parseInt(page) || 1, 1),
+      totalPages || 1
+    );
+
+    const liveries = await Livery.find(query)
+      .populate("author", "username")
+      .sort({ createdAt: -1 })
+      .skip((currentPage - 1) * limitNum)
+      .limit(limitNum);
+
+    res.json({
+      data: liveries,
+      total,
+      totalPages,
+      currentPage,
     });
-
-    await livery.save();
-    res.status(201).json({ message: "Livery uploaded successfully", livery });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Server error during upload" });
+    res.status(500).json({ message: "Failed to fetch liveries" });
   }
 });
 
