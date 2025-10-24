@@ -106,6 +106,34 @@ router.post("/:username/change-username", verifyToken, async (req, res) => {
   res.json({ message: "Username changed successfully" });
 });
 
+router.get("/top", async (req, res) => {
+  try {
+    const topCreators = await Livery.aggregate([
+      { $group: { _id: "$author", totalLiveries: { $sum: 1 } } },
+      { $sort: { totalLiveries: -1 } },
+      { $limit: 6 },
+    ]);
+
+    const users = await Promise.all(
+      topCreators.map(async (creator) => {
+        const user = await User.findById(creator._id).select("username avatarUrl");
+        return user
+          ? {
+              id: user._id,
+              username: user.username,
+              avatarUrl: user.avatarUrl || "",
+              totalLiveries: creator.totalLiveries,
+            }
+          : null;
+      })
+    );
+
+    res.json(users.filter(Boolean));
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to fetch top creators" });
+  }
+});
 
 
 export default router;
