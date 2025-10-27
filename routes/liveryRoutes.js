@@ -191,10 +191,18 @@ router.post("/:id/comments", verifyToken, async (req, res) => {
 
 router.delete("/:id", verifyToken, async (req, res) => {
   try {
-    const livery = await Livery.findById(req.params.id);
+    const livery = await Livery.findById(req.params.id).populate("author");
     if (!livery) return res.status(404).json({ message: "Livery not found" });
 
-    if (livery.author.toString() !== req.user.id)
+    const userId = req.user.id;
+    const actingUser = req.user;
+
+    const allowedRoles = ["moderator", "admin", "owner"];
+    const isAuthorized =
+      livery.author._id.toString() === userId ||
+      allowedRoles.includes(actingUser.role);
+
+    if (!isAuthorized)
       return res.status(403).json({ message: "Unauthorized" });
 
     await livery.deleteOne();
@@ -204,6 +212,7 @@ router.delete("/:id", verifyToken, async (req, res) => {
     res.status(500).json({ message: "Failed to delete livery" });
   }
 });
+
 
 router.get("/:id", async (req, res) => {
   try {
