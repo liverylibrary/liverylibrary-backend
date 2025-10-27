@@ -91,7 +91,7 @@ router.get("/", async (req, res) => {
     else if (sort === "mostCommented") sortQuery = { "comments.length": -1 };
 
     const liveries = await Livery.find(query)
-      .populate("author", "username avatar")
+      .populate("author", "username avatarUrl")
       .sort(sortQuery)
       .skip((currentPage - 1) * limitNum)
       .limit(limitNum);
