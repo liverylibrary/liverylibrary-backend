@@ -8,7 +8,7 @@ router.get("/", verifyToken, async (req, res) => {
   try {
     const notifs = await Notification.find({ user: req.user.id })
       .sort({ createdAt: -1 })
-      .limit(20);
+      .limit(50);
     res.json(notifs);
   } catch (err) {
     console.error(err);
@@ -22,14 +22,14 @@ router.post("/mark-read", verifyToken, async (req, res) => {
     res.json({ message: "Notifications marked as read" });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Failed to update notifications" });
+    res.status(500).json({ message: "Failed to mark notifications as read" });
   }
 });
 
 router.delete("/clear", verifyToken, async (req, res) => {
   try {
     await Notification.deleteMany({ user: req.user.id });
-    res.json({ message: "Notifications cleared" });
+    res.json({ message: "All notifications cleared" });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Failed to clear notifications" });

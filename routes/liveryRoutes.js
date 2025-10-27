@@ -120,8 +120,6 @@ router.post("/:id/like", verifyToken, async (req, res) => {
     const livery = await Livery.findById(req.params.id).populate("author");
     if (!livery) return res.status(404).json({ message: "Livery not found" });
 
-    if (!livery.likes) livery.likes = [];
-
     const userId = req.user.id;
     const index = livery.likes.indexOf(userId);
 
@@ -131,12 +129,20 @@ router.post("/:id/like", verifyToken, async (req, res) => {
       livery.likes.push(userId);
 
       if (livery.author._id.toString() !== userId) {
-        await Notification.create({
+        const existingNotif = await Notification.findOne({
           user: livery.author._id,
           type: "like",
-          message: `${req.user.username} liked your livery "${livery.name}"`,
-          link: `/liveries/${livery._id}`,
+          message: { $regex: `${req.user.username} liked your livery "${livery.name}"`, $options: "i" },
         });
+
+        if (!existingNotif) {
+          await Notification.create({
+            user: livery.author._id,
+            type: "like",
+            message: `${req.user.username} liked your livery "${livery.name}"`,
+            link: `/liveries/${livery._id}`,
+          });
+        }
       }
     }
 
