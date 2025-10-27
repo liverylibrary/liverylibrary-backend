@@ -66,6 +66,22 @@ router.get("/top", async (req, res) => {
 });
 
 
+router.get("/search/:query", async (req, res) => {
+  try {
+    const regex = new RegExp(req.params.query, "i"); 
+    const users = await User.find({ username: regex })
+      .limit(8)
+      .select("username avatarUrl");
+
+    res.json(users);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to search users" });
+  }
+});
+
+
+
 router.get("/:username", async (req, res) => {
   try {
     const user = await User.findOne({ username: req.params.username })
@@ -135,20 +151,6 @@ router.post("/:username/change-username", verifyToken, async (req, res) => {
   res.json({ message: "Username changed successfully" });
 });
 
-
-router.get("/search/:query", async (req, res) => {
-  try {
-    const regex = new RegExp(req.params.query, "i"); 
-    const users = await User.find({ username: regex })
-      .limit(8)
-      .select("username avatarUrl");
-
-    res.json(users);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Failed to search users" });
-  }
-});
 
 
 export default router;
