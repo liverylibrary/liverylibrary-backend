@@ -7,7 +7,7 @@ import authRoutes from "./routes/authRoutes.js";
 import liveryRoutes from "./routes/liveryRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
-import DetailKit from "./models/DetailKit.js";
+import detailKit from "./routes/detailRoutes.js";
 
 dotenv.config();
 
@@ -56,7 +56,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/liveries", liveryRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/notifications", notificationRoutes);
-app.use("/api/details", DetailKit);
+app.use("/api/details", detailKit);
 app.use("/uploads", express.static("uploads"));
 
 const PORT = process.env.PORT || 10000;
