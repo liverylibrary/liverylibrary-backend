@@ -68,25 +68,31 @@ router.post("/", verifyToken, upload.array("images", 5), async (req, res) => {
 
 router.get("/", async (req, res) => {
   try {
-    const { aircraft, tag, search, page = 1, limit = 9 } = req.query;
+    const { aircraft, tag, search, page = 1, limit = 9, sort = "newest" } = req.query;
     const query = {};
 
-    if (aircraft) query.aircraft = aircraft;
-    if (tag) query.tags = { $in: [tag] };
-    if (search) query.name = { $regex: search, $options: "i" };
+    if (aircraft) {
+      query.aircraft = { $regex: aircraft, $options: "i" };
+    }
+    if (tag) {
+      query.tags = { $elemMatch: { $regex: tag, $options: "i" } };
+    }
+    if (search) {
+      query.name = { $regex: search, $options: "i" };
+    }
 
     const limitNum = Math.min(parseInt(limit) || 9, 50);
     const total = await Livery.countDocuments(query);
     const totalPages = Math.ceil(total / limitNum);
+    const currentPage = Math.min(Math.max(parseInt(page) || 1, 1), totalPages || 1);
 
-    const currentPage = Math.min(
-      Math.max(parseInt(page) || 1, 1),
-      totalPages || 1
-    );
+    let sortQuery = { createdAt: -1 };
+    if (sort === "mostLiked") sortQuery = { "likes.length": -1 };
+    else if (sort === "mostCommented") sortQuery = { "comments.length": -1 };
 
     const liveries = await Livery.find(query)
-      .populate("author", "username")
-      .sort({ createdAt: -1 })
+      .populate("author", "username avatar")
+      .sort(sortQuery)
       .skip((currentPage - 1) * limitNum)
       .limit(limitNum);
 
@@ -101,6 +107,7 @@ router.get("/", async (req, res) => {
     res.status(500).json({ message: "Failed to fetch liveries" });
   }
 });
+
 
 router.get("/my", verifyToken, async (req, res) => {
   try {
