@@ -36,6 +36,26 @@ router.post("/profile/banner", verifyToken, upload.single("banner"), async (req,
   }
 });
 
+router.post("/profile/bio", verifyToken, async (req, res) => {
+  try {
+    const { bio } = req.body;
+    if (typeof bio !== "string" || bio.length > 300)
+      return res.status(400).json({ message: "Invalid bio length." });
+
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.bio = bio.trim();
+    await user.save();
+
+    res.json({ message: "Bio updated successfully", bio: user.bio });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to update bio" });
+  }
+});
+
+
 router.get("/top", async (req, res) => {
   try {
     const topCreators = await Livery.aggregate([
