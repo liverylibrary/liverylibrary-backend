@@ -28,9 +28,10 @@ router.get("/author/:authorId/:excludeId", async (req, res) => {
     const filter = { author: authorId };
     if (excludeId && excludeId !== "undefined") filter._id = { $ne: excludeId };
 
-    const liveries = await Livery.find({ author: user._id })
+    const liveries = await Livery.find(filter)
       .sort({ createdAt: -1 })
-      .select("name images aircraft createdAt likes");
+      .limit(3)
+      .select("name images aircraft createdAt");
 
     res.json(liveries);
   } catch (err) {
