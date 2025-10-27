@@ -3,6 +3,7 @@ import { verifyToken } from "../middleware/authMiddleware.js";
 import { upload } from "../middleware/uploadMiddleware.js";
 import Livery from "../models/Livery.js";
 import User from "../models/User.js";
+import Notification from "../models/Notification.js";
 
 const router = express.Router();
 
@@ -116,7 +117,7 @@ router.get("/my", verifyToken, async (req, res) => {
 
 router.post("/:id/like", verifyToken, async (req, res) => {
   try {
-    const livery = await Livery.findById(req.params.id);
+    const livery = await Livery.findById(req.params.id).populate("author");
     if (!livery) return res.status(404).json({ message: "Livery not found" });
 
     if (!livery.likes) livery.likes = [];
@@ -125,9 +126,18 @@ router.post("/:id/like", verifyToken, async (req, res) => {
     const index = livery.likes.indexOf(userId);
 
     if (index > -1) {
-      livery.likes.splice(index, 1); 
+      livery.likes.splice(index, 1);
     } else {
-      livery.likes.push(userId); 
+      livery.likes.push(userId);
+
+      if (livery.author._id.toString() !== userId) {
+        await Notification.create({
+          user: livery.author._id,
+          type: "like",
+          message: `${req.user.username} liked your livery "${livery.name}"`,
+          link: `/liveries/${livery._id}`,
+        });
+      }
     }
 
     await livery.save();
@@ -143,7 +153,7 @@ router.post("/:id/comments", verifyToken, async (req, res) => {
     const { text } = req.body;
     if (!text) return res.status(400).json({ message: "Comment text required" });
 
-    const livery = await Livery.findById(req.params.id);
+    const livery = await Livery.findById(req.params.id).populate("author");
     if (!livery) return res.status(404).json({ message: "Livery not found" });
 
     const comment = {
@@ -155,8 +165,17 @@ router.post("/:id/comments", verifyToken, async (req, res) => {
 
     if (!livery.comments) livery.comments = [];
     livery.comments.push(comment);
-
     await livery.save();
+
+    if (livery.author._id.toString() !== req.user.id) {
+      await Notification.create({
+        user: livery.author._id,
+        type: "comment",
+        message: `${req.user.username} commented on your livery "${livery.name}"`,
+        link: `/liveries/${livery._id}`,
+      });
+    }
+
     res.json(livery.comments);
   } catch (err) {
     console.error(err);
