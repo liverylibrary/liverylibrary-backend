@@ -7,7 +7,6 @@ import Notification from "../models/Notification.js";
 
 const router = express.Router();
 
-/* ------------------------- GET RECENT DETAIL KITS ------------------------- */
 router.get("/recent", async (req, res) => {
   try {
     const kits = await DetailKit.find({})
@@ -22,7 +21,6 @@ router.get("/recent", async (req, res) => {
   }
 });
 
-/* ------------------------- GET AUTHOR DETAIL KITS ------------------------- */
 router.get("/author/:authorId/:excludeId", async (req, res) => {
   try {
     const { authorId, excludeId } = req.params;
@@ -41,7 +39,6 @@ router.get("/author/:authorId/:excludeId", async (req, res) => {
   }
 });
 
-/* --------------------------- UPLOAD NEW DETAIL KIT --------------------------- */
 router.post("/", verifyToken, upload.array("images", 5), async (req, res) => {
   try {
     const { name, aircraft, description, tags, downloadLink, exclusive } = req.body;
@@ -66,7 +63,6 @@ router.post("/", verifyToken, upload.array("images", 5), async (req, res) => {
   }
 });
 
-/* ----------------------------- GET ALL DETAIL KITS ----------------------------- */
 router.get("/", async (req, res) => {
   try {
     const { aircraft, tag, search, page = 1, limit = 9, sort = "newest" } = req.query;
@@ -103,7 +99,6 @@ router.get("/", async (req, res) => {
   }
 });
 
-/* -------------------------- GET USER’S DETAIL KITS -------------------------- */
 router.get("/my", verifyToken, async (req, res) => {
   try {
     const kits = await DetailKit.find({ author: req.user.id })
@@ -117,7 +112,6 @@ router.get("/my", verifyToken, async (req, res) => {
   }
 });
 
-/* --------------------------- LIKE / UNLIKE DETAIL KIT --------------------------- */
 router.post("/:id/like", verifyToken, async (req, res) => {
   try {
     const kit = await DetailKit.findById(req.params.id).populate("author");
@@ -160,7 +154,6 @@ router.post("/:id/like", verifyToken, async (req, res) => {
   }
 });
 
-/* --------------------------- ADD COMMENT TO DETAIL KIT --------------------------- */
 router.post("/:id/comments", verifyToken, async (req, res) => {
   try {
     const { text } = req.body;
@@ -196,7 +189,6 @@ router.post("/:id/comments", verifyToken, async (req, res) => {
   }
 });
 
-/* --------------------------- DELETE DETAIL KIT --------------------------- */
 router.delete("/:id", verifyToken, async (req, res) => {
   try {
     const kit = await DetailKit.findById(req.params.id).populate("author");
@@ -221,7 +213,6 @@ router.delete("/:id", verifyToken, async (req, res) => {
   }
 });
 
-/* --------------------------- GET SINGLE DETAIL KIT --------------------------- */
 router.get("/:id", async (req, res) => {
   try {
     const kit = await DetailKit.findById(req.params.id)
