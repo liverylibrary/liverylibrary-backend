@@ -128,38 +128,42 @@ router.post("/:id/like", verifyToken, async (req, res) => {
     if (!livery) return res.status(404).json({ message: "Livery not found" });
 
     const userId = req.user.id;
-    const index = livery.likes.indexOf(userId);
+    const hasLiked = livery.likes.includes(userId);
 
-    if (index > -1) {
-      livery.likes.splice(index, 1);
-    } else {
-      livery.likes.push(userId);
+    const update = hasLiked
+      ? { $pull: { likes: userId } }
+      : { $addToSet: { likes: userId } };
 
-      if (livery.author._id.toString() !== userId) {
-        const existingNotif = await Notification.findOne({
+    await Livery.updateOne({ _id: livery._id }, update);
+
+    if (!hasLiked && livery.author._id.toString() !== userId) {
+      const existingNotif = await Notification.findOne({
+        user: livery.author._id,
+        type: "like",
+        message: {
+          $regex: `${req.user.username} liked your livery "${livery.name}"`,
+          $options: "i",
+        },
+      });
+
+      if (!existingNotif) {
+        await Notification.create({
           user: livery.author._id,
           type: "like",
-          message: { $regex: `${req.user.username} liked your livery "${livery.name}"`, $options: "i" },
+          message: `${req.user.username} liked your livery "${livery.name}"`,
+          link: `/liveries/${livery._id}`,
         });
-
-        if (!existingNotif) {
-          await Notification.create({
-            user: livery.author._id,
-            type: "like",
-            message: `${req.user.username} liked your livery "${livery.name}"`,
-            link: `/liveries/${livery._id}`,
-          });
-        }
       }
     }
 
-    await livery.save();
-    res.json({ likes: livery.likes.length, liked: index === -1 });
+    const updated = await Livery.findById(livery._id).select("likes");
+    res.json({ likes: updated.likes.length, liked: !hasLiked });
   } catch (err) {
-    console.error(err);
+    console.error("Like toggle error:", err);
     res.status(500).json({ message: "Error toggling like" });
   }
 });
+
 
 router.post("/:id/comments", verifyToken, async (req, res) => {
   try {
